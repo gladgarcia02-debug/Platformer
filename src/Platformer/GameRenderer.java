@@ -37,11 +37,14 @@ final class GameRenderer {
         Graphics2D world = (Graphics2D) g.create();
         world.translate(-cameraX, 0);
         for (Rectangle platform : model.platforms()) drawPlatform(world, platform);
+        for (Crystal crystal : model.crystals()) {
+            if (!crystal.isCollected()) drawCrystal(world, crystal);
+        }
         drawPortal(world, model.goal());
         drawPlayer(world, player, moving);
         world.dispose();
 
-        drawHud(g);
+        drawHud(g, model);
         if (model.hasWon()) drawVictory(g);
     }
 
@@ -70,6 +73,20 @@ final class GameRenderer {
         g.setColor(new Color(130, 255, 230));
         g.drawRoundRect(goal.x, goal.y, goal.width, goal.height, 30, 30);
         g.setStroke(new BasicStroke(1));
+    }
+
+    private void drawCrystal(Graphics2D g, Crystal crystal) {
+        int x = crystal.x();
+        int y = crystal.y();
+        int centerX = x + crystal.width() / 2;
+        int[] xs = {centerX, x + crystal.width(), centerX, x};
+        int[] ys = {y, y + crystal.height() / 2, y + crystal.height(), y + crystal.height() / 2};
+        g.setColor(new Color(50, 255, 235, 55));
+        g.fillOval(x - 7, y - 5, crystal.width() + 14, crystal.height() + 10);
+        g.setColor(new Color(70, 245, 230));
+        g.fillPolygon(xs, ys, 4);
+        g.setColor(new Color(225, 255, 250));
+        g.drawLine(centerX, y + 3, centerX, y + crystal.height() - 3);
     }
 
     private void drawPlayer(Graphics2D g, Player p, boolean moving) {
@@ -106,7 +123,7 @@ final class GameRenderer {
         g.fillOval(p.facingRight ? p.x + 20 : p.x + 9, headY + 9, 3, 3);
     }
 
-    private void drawHud(Graphics2D g) {
+    private void drawHud(Graphics2D g, GameModel model) {
         g.setColor(new Color(8, 15, 40, 190));
         g.fillRoundRect(15, 15, 770, 55, 16, 16);
         g.setFont(new Font("SansSerif", Font.BOLD, 19));
@@ -117,6 +134,8 @@ final class GameRenderer {
         g.drawString("THE FORGOTTEN VALLEY", 31, 55);
         g.setFont(new Font("SansSerif", Font.PLAIN, 13));
         g.drawString("ARROWS  MOVE     SPACE  JUMP", 510, 47);
+        g.setColor(new Color(110, 255, 220));
+        g.drawString("CRYSTALS " + model.collectedCrystalCount() + "/" + model.totalCrystalCount(), 665, 39);
     }
 
     private void drawVictory(Graphics2D g) {
